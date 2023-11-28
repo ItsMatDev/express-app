@@ -140,4 +140,43 @@ describe("PUT /api/movies/:id", () => {
     expect(response.status).toEqual(404);
   });
 });
+
+describe("DELETE /api/movies/:id", () => {
+  it("should remove a movie", async () => {
+    const newMovie = {
+      title: "Wold is life",
+      director: "Alan Smithee",
+      year: "2023",
+      color: "0",
+      duration: 120,
+    };
+
+    const [result1] = await database.query(
+      "INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)",
+      [newMovie.title, newMovie.director, newMovie.year, newMovie.color, newMovie.duration]
+    );
+
+    const id = result1.insertId;
+
+    const response = await request(app).delete(`/api/movies/${id}`);
+
+    expect(response.status).toEqual(204);
+
+    const [result] = await database.query("SELECT * FROM movies WHERE id=?", id);
+
+    expect(result).toHaveLength(0);
+  });
+  it("should return error", async () => {
+    const response = await request(app).delete("/api/movies/0");
+
+    // if (result.some((e) => e.id === req.params.id)) {
+    //   expect(response.status).toEqual(204);
+    // } else {
+    //   expect(response.status).toEqual(404);
+    // }
+
+    expect(response.status).toEqual(404);
+  });
+});
+
 afterAll(() => database.end());
